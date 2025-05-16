@@ -32,18 +32,28 @@ public:
 void addStudent() {
     Student s;
     s.input();
-    ofstream outFile("students.dat", ios::binary | ios::app);
-    outFile.write(reinterpret_cast<char*>(&s), sizeof(s));
+    ofstream outFile("students.txt", ios::app);
+    outFile << s.rollNo << ',' << s.name << ',' << s.age << ',' << s.course << '\n';
     outFile.close();
     cout << "Student record added successfully!\n";
 }
 
 void displayAll() {
-    Student s;
-    ifstream inFile("students.dat", ios::binary);
+    ifstream inFile("students.txt");
+    string line;
     bool found = false;
-    while (inFile.read(reinterpret_cast<char*>(&s), sizeof(s))) {
-        s.display();
+    while (getline(inFile, line)) {
+        int roll, age;
+        string name, course;
+        size_t pos1 = line.find(',');
+        size_t pos2 = line.find(',', pos1 + 1);
+        size_t pos3 = line.find(',', pos2 + 1);
+        if (pos1 == string::npos || pos2 == string::npos || pos3 == string::npos) continue;
+        roll = stoi(line.substr(0, pos1));
+        name = line.substr(pos1 + 1, pos2 - pos1 - 1);
+        age = stoi(line.substr(pos2 + 1, pos3 - pos2 - 1));
+        course = line.substr(pos3 + 1);
+        cout << "Roll No: " << roll << ", Name: " << name << ", Age: " << age << ", Course: " << course << endl;
         found = true;
     }
     inFile.close();
@@ -51,12 +61,22 @@ void displayAll() {
 }
 
 void searchStudent(int roll) {
-    Student s;
+    ifstream inFile("students.txt");
+    string line;
     bool found = false;
-    ifstream inFile("students.dat", ios::binary);
-    while (inFile.read(reinterpret_cast<char*>(&s), sizeof(s))) {
-        if (s.rollNo == roll) {
-            s.display();
+    while (getline(inFile, line)) {
+        int r, age;
+        string name, course;
+        size_t pos1 = line.find(',');
+        size_t pos2 = line.find(',', pos1 + 1);
+        size_t pos3 = line.find(',', pos2 + 1);
+        if (pos1 == string::npos || pos2 == string::npos || pos3 == string::npos) continue;
+        r = stoi(line.substr(0, pos1));
+        name = line.substr(pos1 + 1, pos2 - pos1 - 1);
+        age = stoi(line.substr(pos2 + 1, pos3 - pos2 - 1));
+        course = line.substr(pos3 + 1);
+        if (r == roll) {
+            cout << "Roll No: " << r << ", Name: " << name << ", Age: " << age << ", Course: " << course << endl;
             found = true;
             break;
         }
@@ -66,21 +86,31 @@ void searchStudent(int roll) {
 }
 
 void deleteStudent(int roll) {
-    Student s;
-    ifstream inFile("students.dat", ios::binary);
-    ofstream outFile("temp.dat", ios::binary);
+    ifstream inFile("students.txt");
+    ofstream outFile("temp.txt");
+    string line;
     bool found = false;
-    while (inFile.read(reinterpret_cast<char*>(&s), sizeof(s))) {
-        if (s.rollNo != roll) {
-            outFile.write(reinterpret_cast<char*>(&s), sizeof(s));
+    while (getline(inFile, line)) {
+        int r, age;
+        string name, course;
+        size_t pos1 = line.find(',');
+        size_t pos2 = line.find(',', pos1 + 1);
+        size_t pos3 = line.find(',', pos2 + 1);
+        if (pos1 == string::npos || pos2 == string::npos || pos3 == string::npos) continue;
+        r = stoi(line.substr(0, pos1));
+        name = line.substr(pos1 + 1, pos2 - pos1 - 1);
+        age = stoi(line.substr(pos2 + 1, pos3 - pos2 - 1));
+        course = line.substr(pos3 + 1);
+        if (r != roll) {
+            outFile << r << ',' << name << ',' << age << ',' << course << '\n';
         } else {
             found = true;
         }
     }
     inFile.close();
     outFile.close();
-    remove("students.dat");
-    rename("temp.dat", "students.dat");
+    remove("students.txt");
+    rename("temp.txt", "students.txt");
     if (found)
         cout << "Student record deleted.\n";
     else
